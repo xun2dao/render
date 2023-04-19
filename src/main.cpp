@@ -5,8 +5,13 @@
 #include"Shader/Shader.h"
 #include"configure/configure.h"
 #include"VertexArray/VertexArray.h"
-#include<stb_image.h>
-
+#include"Texture/Texture.h"
+#include<glm/glm.hpp>
+#include<glm/gtc/matrix_transform.hpp>
+#include<glm/gtc/type_ptr.hpp>
+#include"EventSystem/Event/MouseEvent.h"
+#include"EventSystem/Event/KeyEvent.h"
+#include"EventSystem/EventDispatcher.h"
 unsigned int CreateShader(const char* source){
     unsigned int shader;
     glCreateShader(shader);
@@ -41,6 +46,27 @@ unsigned int CreateProgram(const char* vertexSource, const char* fragmentSource)
     return program;
 }
 
+void MouseButtonCallbackFunc(GLFWwindow* window, int button, int action, int mods){
+    EventDispatcher* dispatcher = (EventDispatcher*)glfwGetWindowUserPointer(window);
+    Event* e = new MouseButtonEvent(button);
+    dispatcher->PushEvent(e);
+}
+
+void KeyPressCallbackFunc(GLFWwindow* window, int key, int scancode, int action, int mods){
+    EventDispatcher* dispatcher = (EventDispatcher*)glfwGetWindowUserPointer(window);
+    Event* e = new KeyPressEvent(key, 1);
+    dispatcher->PushEvent(e);
+}
+
+void HandleMouseButton(const Event* e){
+    //MouseButtonEvent * e = dynamic_cast<MouseButtonEvent*>(const_cast<Event*>(e));
+    std::cout<< e->ToString()<<std::endl;
+}
+
+void HandleKeyPress(const Event* e){
+    std::cout<<e->ToString()<<std::endl;
+}
+
 int main(){
 
 
@@ -50,11 +76,21 @@ int main(){
 
     }
 
+
     GLFWwindow* window = glfwCreateWindow(800, 600, "OpenGL", nullptr, nullptr);
     glfwMakeContextCurrent(window);
     if(!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)){
         std::cout<<"GLAD load failed!"<<std::endl;
     }
+    EventDispatcher dispatcher;
+    dispatcher.Register(EventType::MouseButton, HandleMouseButton);
+    dispatcher.Register(EventType::KeyPress, HandleKeyPress);
+
+    glfwSetWindowUserPointer(window, &dispatcher);
+
+
+    glfwSetMouseButtonCallback(window, MouseButtonCallbackFunc);
+    glfwSetKeyCallback(window, KeyPressCallbackFunc);
 
     float vertexes[] = {
         0.5, 0, 0, 1.0, 0, 0, 1, 1,
@@ -85,6 +121,8 @@ int main(){
     // glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3*sizeof(float), (void*)0); // 告诉GPU如何理解输入的数据
     // glEnableVertexAttribArray(0);
 
+    
+
     VertexArray vao(sizeof(vertexes)/sizeof(float), vertexes, 6, indexes);
     vao.AddAttrib({GL_FLOAT, 3});
     vao.AddAttrib({GL_FLOAT, 3});
@@ -96,24 +134,27 @@ int main(){
 
     Program program("../shader/vertex.shader", "../shader/fragment.shader");
 
-    int width, height, channel;
-    stbi_set_flip_vertically_on_load(true);
-    unsigned char* data = stbi_load("../assert/wall.jpg", &width, &height, &channel, 0);
-    if(!data) std::cout<<"data doesn't exist!"<<std::endl;
-    unsigned int tex;
-    glGenTextures(1, &tex);
-    glBindTexture(GL_TEXTURE_2D, tex);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-    glGenerateMipmap(GL_TEXTURE_2D);
-    stbi_image_free(data);
+    // int width, height, channel;
+    // stbi_set_flip_vertically_on_load(true);
+    // unsigned char* data = stbi_load("../assert/wall.jpg", &width, &height, &channel, 0);
+    // if(!data) std::cout<<"data doesn't exist!"<<std::endl;
+    // unsigned int tex;
+    // glGenTextures(1, &tex);
+    // glBindTexture(GL_TEXTURE_2D, tex);
+    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    // glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+    // glGenerateMipmap(GL_TEXTURE_2D);
+    // stbi_image_free(data);
+    Texture tex("../assert/wall.jpg");
+    Texture tex1("../assert/awesomeface.png", 1);
+    program.SetUniform1i("tex1", tex1.GetUnit());
 
-    
-
+   
     float red = 0;
+    float angle = 0;
     while(!glfwWindowShouldClose(window)){
         glClearColor(0.0,0.3,0.1,1.0);
         glClear(GL_COLOR_BUFFER_BIT);
@@ -121,7 +162,14 @@ int main(){
         vao.Use();
         //glBindVertexArray(Triangle);
         program.Use();
+
+        glm::mat4 trans;
+        trans = glm::rotate(trans, glm::radians(angle), glm::vec3(0, 0, 1));
+        trans = glm::scale(trans, glm::vec3(red, 2, 0.5));
+
+        program.SetUniformMat4f("trans", glm::value_ptr(trans));
         red = std::sin(glfwGetTime());
+        angle ++;
         //program.SetUniform4f("globalColor", red, 2.0, 1.0, 1.0);
         //glDrawArrays(GL_TRIANGLES, 0, 3);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);

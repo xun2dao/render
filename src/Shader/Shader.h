@@ -78,6 +78,19 @@ void SetUniform4f(std::string name, float x, float y, float z, float w){
     this->Use();
     glUniform4f(location, x, y, z, w);
 }
+
+void SetUniform1i(std::string name, int x){
+    auto location = glGetUniformLocation(m_program_id, name.c_str());
+    this->Use();
+    glUniform1i(location, x);
+}
+
+void SetUniformMat4f(std::string name, GLfloat* trans){
+    auto location = glGetUniformLocation(m_program_id, name.c_str());
+    this->Use();
+    glUniformMatrix4fv(location, 1, GL_FALSE, trans);
+}
+
 private:
     unsigned int m_program_id;
 };
