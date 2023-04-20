@@ -79,6 +79,22 @@ void KeyPressCallbackFunc(GLFWwindow* window, int key, int scancode, int action,
     }
 }
 
+void ScrollCallbackFunc(GLFWwindow* window, double x, double y){
+    EventDispatcher* dispatcher = (EventDispatcher*)glfwGetWindowUserPointer(window);
+    Event* e = new MouseScrollEvent(x, y);
+    dispatcher->PushEvent(e);
+    // 自由移动
+
+}
+
+void CursorPosCallback(GLFWwindow* window, double x, double y){
+    EventDispatcher* dispatcher = (EventDispatcher*)glfwGetWindowUserPointer(window);
+    Event* e = new MouseCursorPos(x, y);
+    dispatcher->PushEvent(e);
+    // 缩放
+}
+
+
 void HandleMouseButton(const Event* e){ 
     //MouseButtonEvent * e = dynamic_cast<MouseButtonEvent*>(const_cast<Event*>(e));
     std::cout<< e->ToString()<<std::endl;
@@ -89,6 +105,15 @@ void HandleKeyPress(const Event* e){
     KeyPressEvent* event = dynamic_cast<KeyPressEvent*>(const_cast<Event*>(e));
 }
 
+void HandleMouseScroll(const Event* e){
+    std::cout<< e->ToString()<<std::endl;
+    MouseScrollEvent* event = dynamic_cast<MouseScrollEvent*>(const_cast<Event*>(e));
+}
+
+void HandleMouseCursorPos(const Event* e){
+    std::cout<< e->ToString()<<std::endl;
+    MouseCursorPos* event = dynamic_cast<MouseCursorPos*>(const_cast<Event*>(e));
+}
 
 
 
@@ -110,12 +135,15 @@ int main(){
     EventDispatcher dispatcher;
     dispatcher.Register(EventType::MouseButton, HandleMouseButton);
     dispatcher.Register(EventType::KeyPress, HandleKeyPress);
-
+    dispatcher.Register(EventType::MouseScroll, HandleMouseScroll);
+    dispatcher.Register(EventType::MouseCursorPos, HandleMouseCursorPos);
     glfwSetWindowUserPointer(window, &dispatcher);
 
 
     glfwSetMouseButtonCallback(window, MouseButtonCallbackFunc);
     glfwSetKeyCallback(window, KeyPressCallbackFunc);
+    glfwSetScrollCallback(window, ScrollCallbackFunc);
+    glfwSetCursorPosCallback(window, CursorPosCallback);
 
     float vertexes[] = {
         0.5, 0, 0, 1.0, 0, 0, 1, 1,

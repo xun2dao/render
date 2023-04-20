@@ -12,7 +12,9 @@ namespace EventProperty{
 enum class EventType{
     UNKNOWN,
     MouseButton,
-    KeyPress
+    KeyPress,
+    MouseScroll,
+    MouseCursorPos
 };
 
 #define EVENT_TYPE(x) \
