@@ -12,6 +12,11 @@
 #include"EventSystem/Event/MouseEvent.h"
 #include"EventSystem/Event/KeyEvent.h"
 #include"EventSystem/EventDispatcher.h"
+#include"Camera/Camera.h"
+
+
+Camera camera;
+
 unsigned int CreateShader(const char* source){
     unsigned int shader;
     glCreateShader(shader);
@@ -50,22 +55,42 @@ void MouseButtonCallbackFunc(GLFWwindow* window, int button, int action, int mod
     EventDispatcher* dispatcher = (EventDispatcher*)glfwGetWindowUserPointer(window);
     Event* e = new MouseButtonEvent(button);
     dispatcher->PushEvent(e);
+    
 }
 
 void KeyPressCallbackFunc(GLFWwindow* window, int key, int scancode, int action, int mods){
     EventDispatcher* dispatcher = (EventDispatcher*)glfwGetWindowUserPointer(window);
     Event* e = new KeyPressEvent(key, 1);
     dispatcher->PushEvent(e);
+    KeyPressEvent* event = dynamic_cast<KeyPressEvent*>(const_cast<Event*>(e));
+    switch(event->GetKey()){
+        case 65:
+            camera.MoveLeft();
+        break;
+        case 68:
+            camera.MoveRight();
+        break;
+        case 83:
+            camera.MoveFront();
+        break;
+        case 87:
+            camera.MoveBack();
+        break;
+    }
 }
 
-void HandleMouseButton(const Event* e){
+void HandleMouseButton(const Event* e){ 
     //MouseButtonEvent * e = dynamic_cast<MouseButtonEvent*>(const_cast<Event*>(e));
     std::cout<< e->ToString()<<std::endl;
 }
 
 void HandleKeyPress(const Event* e){
     std::cout<<e->ToString()<<std::endl;
+    KeyPressEvent* event = dynamic_cast<KeyPressEvent*>(const_cast<Event*>(e));
 }
+
+
+
 
 int main(){
 
@@ -134,6 +159,8 @@ int main(){
 
     Program program("../shader/vertex.shader", "../shader/fragment.shader");
 
+    camera.AddProgram(program);
+
     // int width, height, channel;
     // stbi_set_flip_vertically_on_load(true);
     // unsigned char* data = stbi_load("../assert/wall.jpg", &width, &height, &channel, 0);
@@ -152,24 +179,21 @@ int main(){
     Texture tex1("../assert/awesomeface.png", 1);
     program.SetUniform1i("tex1", tex1.GetUnit());
 
-   
-    float red = 0;
-    float angle = 0;
+
+    glm::mat4 model, projection;
+    model = glm::rotate(model, -55.0f, glm::vec3(1.0f, 0, 0));
+    projection = glm::perspective(45.0f, 800/600.0f, 0.1f, 100.0f);
+    
+    program.SetUniformMat4f("model", glm::value_ptr(model));
+    program.SetUniformMat4f("projection", glm::value_ptr(projection));
+
+
     while(!glfwWindowShouldClose(window)){
         glClearColor(0.0,0.3,0.1,1.0);
         glClear(GL_COLOR_BUFFER_BIT);
 
         vao.Use();
         //glBindVertexArray(Triangle);
-        program.Use();
-
-        glm::mat4 trans;
-        trans = glm::rotate(trans, glm::radians(angle), glm::vec3(0, 0, 1));
-        trans = glm::scale(trans, glm::vec3(red, 2, 0.5));
-
-        program.SetUniformMat4f("trans", glm::value_ptr(trans));
-        red = std::sin(glfwGetTime());
-        angle ++;
         //program.SetUniform4f("globalColor", red, 2.0, 1.0, 1.0);
         //glDrawArrays(GL_TRIANGLES, 0, 3);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);

@@ -55,6 +55,7 @@ private:
 
 class Program{
 public:
+    Program(){}
     Program(std::string vertexFile, std::string fragmentFile){
         m_program_id = glCreateProgram();
         Shader m_vertex_shader(vertexFile, Shader::ShaderType::VERTEX_SHADER);

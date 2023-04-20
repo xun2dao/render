@@ -1,12 +1,11 @@
 #include"EventDispatcher.h"
 
 EventDispatcher::EventDispatcher(){
-    std::thread t(&EventDispatcher::Handle, this);
-    t.detach();
+    m_thread = std::thread(&EventDispatcher::Handle, this);
 }
 
 void EventDispatcher::Handle(){
-    while(true){
+    while(m_running){
         m_lock.lock();
         if(m_events.empty()){
             m_lock.unlock();

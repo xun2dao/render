@@ -14,6 +14,7 @@ std::string ToString() const override{
 EVENT_TYPE(KeyPress)
 ~KeyPressEvent(){}
 
+int GetKey() const {return m_keycode;}
 private:
     int m_keycode;
     int m_repeat;

@@ -27,8 +27,14 @@ public:
     void Register(const EventType& type, const std::function<void(const Event*)>& func){
         m_event_handlers[type] = func;
     }
+    ~EventDispatcher(){
+        m_running = false;
+        m_thread.join();
+    }
 private:
     std::priority_queue<Event*,std::vector<Event*>, EventCompare> m_events;
     std::mutex m_lock;
     std::unordered_map<EventType, std::function<void(const Event*)>> m_event_handlers;
+    std::thread m_thread;
+    bool m_running = true;
 };
