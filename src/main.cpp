@@ -71,10 +71,10 @@ void KeyPressCallbackFunc(GLFWwindow* window, int key, int scancode, int action,
             camera.MoveRight();
         break;
         case 83:
-            camera.MoveFront();
+            camera.MoveBack();
         break;
         case 87:
-            camera.MoveBack();
+            camera.MoveFront();
         break;
     }
 }
@@ -145,17 +145,54 @@ int main(){
     glfwSetScrollCallback(window, ScrollCallbackFunc);
     glfwSetCursorPosCallback(window, CursorPosCallback);
 
-    float vertexes[] = {
-        0.5, 0, 0, 1.0, 0, 0, 1, 1,
-        0, 0.5, 0, 0, 1.0, 0, 0, 0.5,
-        -0.5, 0, 0, 0, 0, 1.0, 0, 0,
-        0, -0.5, 0, 0, 1.0, 0, 0, 0.5
-    };
 
-    unsigned int indexes[] = {
-        0, 1, 2,
-        0, 2, 3
-    };
+
+    float vertexes[] = {
+    -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+     0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
+     0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
+     0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
+    -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
+    -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
+
+    -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+     0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+     0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+     0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+    -0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+
+    -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+    -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+    -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+    -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+    -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+    -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+
+     0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+     0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+     0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+     0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+     0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+     0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+
+    -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+     0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+     0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+     0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+
+    -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+     0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+     0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+     0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+    -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+    -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
+};
+
+
+    
 
     // unsigned int Triangle;
     // glGenVertexArrays(1, &Triangle);
@@ -174,20 +211,30 @@ int main(){
     // glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3*sizeof(float), (void*)0); // 告诉GPU如何理解输入的数据
     // glEnableVertexAttribArray(0);
 
-    
+    glm::vec3 lightColor(1.0f, 1.0f, 1.0f);
+    glm::vec3 lightPos(3.0f, 0.0f, 3.0f);
 
-    VertexArray vao(sizeof(vertexes)/sizeof(float), vertexes, 6, indexes);
+    VertexArray light(sizeof(vertexes)/sizeof(float), vertexes);
+    light.AddAttrib({GL_FLOAT, 3});
+    light.AddAttrib({GL_FLOAT, 3});
+    light.ParseData();
+    Program lightProgram("../shader/vertex.shader", "../shader/lightFragment.shader");
+    lightProgram.SetUniform3f("lightColor", lightColor);
+    light.Unuse();
+    lightProgram.Unuse();
+
+    VertexArray vao(sizeof(vertexes)/sizeof(float), vertexes);
     vao.AddAttrib({GL_FLOAT, 3});
     vao.AddAttrib({GL_FLOAT, 3});
-    vao.AddAttrib({GL_FLOAT, 2});
     vao.ParseData();
-
 
     //ConfigureManager configure_manager;
 
     Program program("../shader/vertex.shader", "../shader/fragment.shader");
-
+    program.SetUniform3f("lightColor", lightColor);
+    program.SetUniform3f("lightPos", lightPos);
     camera.AddProgram(program);
+    camera.AddProgram(lightProgram);
 
     // int width, height, channel;
     // stbi_set_flip_vertically_on_load(true);
@@ -203,28 +250,41 @@ int main(){
     // glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
     // glGenerateMipmap(GL_TEXTURE_2D);
     // stbi_image_free(data);
-    Texture tex("../assert/wall.jpg");
-    Texture tex1("../assert/awesomeface.png", 1);
-    program.SetUniform1i("tex1", tex1.GetUnit());
 
 
-    glm::mat4 model, projection;
-    model = glm::rotate(model, -55.0f, glm::vec3(1.0f, 0, 0));
+    glm::mat4 projection;
+    //model = glm::rotate(model, -55.0f, glm::vec3(1.0f, 0, 0));
     projection = glm::perspective(45.0f, 800/600.0f, 0.1f, 100.0f);
     
-    program.SetUniformMat4f("model", glm::value_ptr(model));
+    //program.SetUniformMat4f("model", glm::value_ptr(model));
     program.SetUniformMat4f("projection", glm::value_ptr(projection));
+    lightProgram.SetUniformMat4f("projection", glm::value_ptr(projection));
+    glEnable(GL_DEPTH_TEST);
 
-
+    float box_pos[] = {3, 5, 12, 6, 9};
     while(!glfwWindowShouldClose(window)){
         glClearColor(0.0,0.3,0.1,1.0);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        
+        light.Use();
+        lightProgram.Use();
+        glm::mat4 model;
+        model = glm::translate(model, lightPos);
+        model = glm::scale(model, glm::vec3(0.2));
+        lightProgram.SetUniformMat4f("model", glm::value_ptr(model));
+        glDrawArrays(GL_TRIANGLES, 0, 36);
 
         vao.Use();
-        //glBindVertexArray(Triangle);
-        //program.SetUniform4f("globalColor", red, 2.0, 1.0, 1.0);
-        //glDrawArrays(GL_TRIANGLES, 0, 3);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        program.Use();
+        program.SetUniform3f("viewPos", camera.GetPos());
+        for(int i = 0; i < 5; ++i){
+            glm::mat4 model;
+            model = glm::translate(model, glm::vec3(box_pos[i],0.0, 0.0));
+            program.SetUniformMat4f("model", glm::value_ptr(model));
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+        }
+
+        
         
         //std::cout<<"Tick"<<std::endl;
         glfwPollEvents();

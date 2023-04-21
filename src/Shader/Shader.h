@@ -4,6 +4,7 @@
 #include<sstream>
 #include<iostream>
 #include<glad/glad.h>
+#include<glm/glm.hpp>
 class Shader{
 std::string ReadFromFile(){
     std::ifstream fos(m_file);
@@ -80,6 +81,12 @@ void SetUniform4f(std::string name, float x, float y, float z, float w){
     glUniform4f(location, x, y, z, w);
 }
 
+void SetUniform3f(std::string name, glm::vec3 vec){
+    auto location = glGetUniformLocation(m_program_id, name.c_str());
+    this->Use();
+    glUniform3f(location, vec.x, vec.y, vec.z);
+}
+
 void SetUniform1i(std::string name, int x){
     auto location = glGetUniformLocation(m_program_id, name.c_str());
     this->Use();
@@ -91,6 +98,7 @@ void SetUniformMat4f(std::string name, GLfloat* trans){
     this->Use();
     glUniformMatrix4fv(location, 1, GL_FALSE, trans);
 }
+
 
 private:
     unsigned int m_program_id;

@@ -2,6 +2,7 @@
 #include<glm/glm.hpp>
 #include<glm/gtc/matrix_transform.hpp>
 #include"../Shader/Shader.h"
+#include<vector>
 #include<glm/gtc/type_ptr.hpp>
 
 class Camera{
@@ -11,7 +12,8 @@ public:
         m_front = glm::vec3(0.0f, 0.0f, -1.0f);
         m_up = glm::vec3(0.0f, 1.0f, 0.0f);
     }
-    Camera(Program& program, std::string viwe_name= "view"): m_program(program), m_view_name(viwe_name){
+    Camera(Program& program, std::string viwe_name= "view"): m_view_name(viwe_name){
+        m_programs.push_back(program);
         m_direction = glm::vec3(0.0f, 0.0f, 3.0f);
         m_front = glm::vec3(0.0f, 0.0f, -1.0f);
         m_up = glm::vec3(0.0f, 1.0f, 0.0f);
@@ -20,7 +22,7 @@ public:
     }
 
     void AddProgram(Program& program){
-        m_program = program;
+        m_programs.push_back(program);
         UpdateView();
     }
     void MoveFront();
@@ -32,15 +34,17 @@ public:
     void LookLeft(float);
     void LookRight(float);
 
+    glm::vec3 GetPos() const {return m_direction;}
 private:
     void UpdateView(){
         glm::mat4 view = glm::lookAt(m_direction, m_front + m_direction, m_up);
-        m_program.SetUniformMat4f(m_view_name, glm::value_ptr(view));
+        for(auto& program : m_programs)
+            program.SetUniformMat4f(m_view_name, glm::value_ptr(view));
     }
 private:
     glm::vec3 m_direction;
     glm::vec3 m_front;
     glm::vec3 m_up;
     std::string m_view_name;
-    Program m_program;
+    std::vector<Program> m_programs;
 };
